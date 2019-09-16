@@ -31,17 +31,17 @@ class LogViewController: UIViewController {
         //--navにデバイス名をセット
         self.nameNavBar.title = device.name
         
-        reflesh() //データを更新
+        refresh() //データを更新
     }
     
     //--
     @IBAction func ontapReflesh(_ sender: Any) {
-        reflesh() //データを更新
+        refresh() //データを更新
     }
     
     
     //--
-    func reflesh(){
+    func refresh(){
         //--サーバからデータを持ってくる
         fetchMeasureData(targetID:self.device.deviceID)
         fetchGraph(targetID: self.device.deviceID)
@@ -99,7 +99,7 @@ class LogViewController: UIViewController {
         let selectedIndex = self.sizeSelector.selectedSegmentIndex
         self.fetchlength = Int(self.sizeSelector.titleForSegment(at: selectedIndex)!)!
         
-        reflesh()
+        refresh()
     }
 }
 

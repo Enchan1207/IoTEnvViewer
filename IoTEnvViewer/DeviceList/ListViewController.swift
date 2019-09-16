@@ -23,7 +23,7 @@ class ListViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         //--デバイスリスト読み込み + 更新
         loadDeviceList()
-        refleshDeviceList()
+        refreshDeviceList()
     }
     
     //--アプリ起動時の設定
@@ -53,7 +53,7 @@ class ListViewController: UIViewController {
     //--UITableViewを引っ張った時に呼び出される関数
     @objc func refresh(sender: UIRefreshControl) {
         //--
-        refleshDeviceList()
+        refreshDeviceList()
         refreshCtl.endRefreshing()
     }
     
@@ -70,7 +70,7 @@ class ListViewController: UIViewController {
     }
     
     //--デバイスリストの測定データ周りを更新
-    func refleshDeviceList(){
+    func refreshDeviceList(){
         list.update()
         deviceList = list.getDeviceList()
         self.ListView.reloadData()
