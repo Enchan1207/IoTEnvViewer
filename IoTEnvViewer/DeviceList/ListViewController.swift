@@ -16,6 +16,7 @@ class ListViewController: UIViewController {
     private let list: DeviceList = DeviceList()
     
     //--components
+    fileprivate let refreshCtl = UIRefreshControl()
     @IBOutlet weak var ListView: UITableView!
     
     //--didloadだとアプリ起動時にしか実行されないので、viewWillappearで
@@ -43,6 +44,17 @@ class ListViewController: UIViewController {
             name: UIApplication.didEnterBackgroundNotification,
             object: nil
         )
+        
+        //--RefleshControlの設定
+        self.ListView.refreshControl = refreshCtl
+        refreshCtl.addTarget(self, action: #selector(ListViewController.refresh(sender:)), for: .valueChanged)
+    }
+    
+    //--UITableViewを引っ張った時に呼び出される関数
+    @objc func refresh(sender: UIRefreshControl) {
+        //--
+        refleshDeviceList()
+        refreshCtl.endRefreshing()
     }
     
     //--デバイスリスト読み込み
@@ -62,10 +74,6 @@ class ListViewController: UIViewController {
         list.update()
         deviceList = list.getDeviceList()
         self.ListView.reloadData()
-    }
-    
-    @IBAction func ontapReflesh(_ sender: Any) {
-        refleshDeviceList()
     }
 }
 

@@ -43,11 +43,6 @@
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <navigationItem key="navigationItem" title="デバイスリスト" id="Npz-l0-gDH">
-                        <barButtonItem key="leftBarButtonItem" systemItem="refresh" id="tw8-Zl-ahA">
-                            <connections>
-                                <action selector="ontapReflesh:" destination="BYZ-38-t0r" id="v9f-u2-X3b"/>
-                            </connections>
-                        </barButtonItem>
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="0fl-4L-Tnm">
                             <connections>
                                 <segue destination="I1f-Xe-uWD" kind="show" id="Lh5-2g-VRm"/>
