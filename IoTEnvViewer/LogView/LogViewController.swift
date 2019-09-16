@@ -31,44 +31,59 @@ class LogViewController: UIViewController {
         //--navにデバイス名をセット
         self.nameNavBar.title = device.name
         
+        reflesh() //データを更新
+    }
+    
+    //--
+    @IBAction func ontapReflesh(_ sender: Any) {
+        reflesh() //データを更新
+    }
+    
+    
+    //--
+    func reflesh(){
         //--サーバからデータを持ってくる
-        
         fetchMeasureData(targetID:self.device.deviceID)
         fetchGraph(targetID: self.device.deviceID)
+        self.logView.reloadData()
     }
     
     //--deviceIDをキーにして測定ログをfetch
     func fetchMeasureData(targetID: Int){
         var logs: Measurelog = Measurelog()
-        let fetch: String = """
-            {
-                "log" : [
-                    {
-                        "temp" : 25.4,
-                        "humid" : 23.3,
-                        "timestamp" : 1568364449
-                    },
-                    {
-                        "temp" : 32.1,
-                        "humid" : 24.5,
-                        "timestamp" : 1568364449
-                    }
-                ]
-            }
-        """
-        logs.decodeData(source: fetch)
+        var responce: String? = nil
+        
+        let url = "https://enchan-lab.net/Enchan/api/IoTEnvLogger/getMeasureData.php"
+        let param = "deviceID=\(targetID)&length=\(self.fetchlength)"
+        
+        if let responceData = try? Data(contentsOf: URL(string: "\(url)?\(param)")!){
+            responce = String(data: responceData, encoding: .utf8)!
+        }else{
+            print("error")
+        }
+        
+        logs.decodeData(source: responce!)
         self.measureLog = logs.getMeasureLogs()
     }
     
     //--deviceIDをキーにしてグラフをfetch
     func fetchGraph(targetID: Int){
+        var graph: UIImage = UIImage() //空の画像作っとくべきよ
         loadIndicator.startAnimating()
+        
         DispatchQueue.global().async {
-            //--サーバに接続し、グラフ画像データを取得
-            Thread.sleep(forTimeInterval: 5)
+            //--グラフ画像データを取得
+            let url = "https://enchan-lab.net/Enchan/api/IoTEnvLogger/drawGraph.php"
+            let param = "deviceID=\(targetID)&length=\(self.fetchlength)"
+            if let responceData = try? Data(contentsOf: URL(string: "\(url)?\(param)")!){
+                graph = UIImage(data: responceData)!
+            }else{
+                print("error")
+            }
             
             DispatchQueue.main.async {
                 self.loadIndicator.stopAnimating()
+                self.dataGraph.image = graph
             }
         }
         
@@ -79,25 +94,31 @@ class LogViewController: UIViewController {
         self.device = target
     }
     
-    //--
+    //--フェッチデータ数が変わった時の処理
     @IBAction func onLengthChange(_ sender: Any) {
         let selectedIndex = self.sizeSelector.selectedSegmentIndex
         self.fetchlength = Int(self.sizeSelector.titleForSegment(at: selectedIndex)!)!
         
-        fetchMeasureData(targetID: self.device.deviceID)
-        fetchGraph(targetID: self.device.deviceID)
+        reflesh()
     }
 }
 
 //--
 extension LogViewController: UITableViewDataSource{
+    //--セル数
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.measureLog.log.count
     }
     
+    //--カスタムセル
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = self.logView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! LogViewCell
         cell.load(type: self.device.type, target: self.measureLog.log[indexPath.row])
         return cell
+    }
+    
+    //--カスタムセルの高さ
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 50
     }
 }

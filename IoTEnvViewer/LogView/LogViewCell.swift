@@ -11,9 +11,7 @@ import UIKit
 class LogViewCell: UITableViewCell {
     //--
     
-    //--components
-    @IBOutlet weak var icon_1: UIImageView!
-    @IBOutlet weak var icon_2: UIImageView!
+    //--component
     @IBOutlet weak var data_1: UILabel!
     @IBOutlet weak var data_2: UILabel!
     @IBOutlet weak var timeStamp: UILabel!
@@ -25,6 +23,12 @@ class LogViewCell: UITableViewCell {
     
     //--
     func load(type: Int, target: MeasureData){
+        //--device.latestをフォーマットする
+        let latest = Date(timeIntervalSince1970: TimeInterval(target.timestamp))
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm"
+        timeStamp.text = dateFormatter.string(from: latest)
+        
         //--typeによって読むデータを変える
         var data1 = "", data2 = ""
         switch type {
