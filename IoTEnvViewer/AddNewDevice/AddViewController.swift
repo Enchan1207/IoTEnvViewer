@@ -28,20 +28,50 @@ class AddViewController: UIViewController {
     @IBAction func ontapSubmit(_ sender: Any) {
         print("\(self.deviceID) : \(self.deviceName)")
         var device = getConfig(id:self.deviceID)
+        
         if device != nil {
             print("device found.add device list.")
             device!.name = self.deviceName
             
+            //--取得したデバイスをリストに追加して保存して戻る
+            let deviceList = DeviceList()
+            deviceList.loadList()
+            //デバイスリストの中に追加を試みているデバイスがあればスキップ
+            var stat: Bool = true
+            for devinlist in deviceList.getDeviceList().Device_list {
+                if(devinlist.deviceID == device!.deviceID){
+                    stat = false
+                }
+            }
+            if(stat){
+                deviceList.addDevice(target: device!)
+                deviceList.saveList()
+            }else{
+                print("Already exists")
+            }
         }else{
             print("Invalid request")
         }
+        self.navigationController?.popViewController(animated: true) //animatedはせ戻る時のアニメの有無か
     }
     
-    //--デバイスのコンフィグを取得しDevice型で返す
+    //--デバイスのコンフィグを取得しDevice型で返す 指定IDのデバイスが存在しなければnilを返す
     func getConfig(id: Int) -> Device?{
-        return Device(name: "", deviceID: id, type: 0, lastData: MeasureData(timestamp: 0, temp: 23.3, humid: 23.3, door: nil, human: nil))
+        var responce: String? = nil
+        let url = "https://enchan-lab.net/Enchan/api/IoTEnvLogger/getInfo.php"
+        let param = "deviceID=\(id)"
         
-//        return nil
+        if let responceData = try? Data(contentsOf: URL(string: "\(url)?\(param)")!){
+            responce = String(data: responceData, encoding: .utf8)!
+        }else{
+            print("error")
+        }
+        
+        if(responce! != ""){
+            return decodeDevice(source: responce!)
+        }else{
+            return nil
+        }
     }
     
     //--Deviceをjsonデコード

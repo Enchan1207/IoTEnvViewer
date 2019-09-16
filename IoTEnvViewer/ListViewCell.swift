@@ -30,32 +30,50 @@ class ListViewCell: UITableViewCell {
         dateFormatter.dateFormat = "MM/dd HH:mm"
         latestLabel.text = dateFormatter.string(from: latest)
         
-        //--typeによって読むデータを変える
+        //--測定データjsonから実際に表示するデータに変換
         var data1 = "", data2 = ""
         switch device.type {
             
         case 0:
             //--温湿度センサ
-            data1 = NSString(format: "%.1f", device.lastData.temp!) as String + "℃"
-            data2 = NSString(format: "%.1f", device.lastData.humid!) as String + "%"
+            let temp = device.lastData.temp
+            let humid = device.lastData.humid
+            if(temp != nil && humid != nil){
+                data1 = NSString(format: "%.1f", temp!) as String + "℃"
+                data2 = NSString(format: "%.1f", humid!) as String + "%"
+            }else{
+                data1 = "no data"
+                data2 = "no data"
+            }
             break
             
         case 1:
             //--ドアセンサ
-            data1 = "close"
-            if(device.lastData.door!) {
-                data1 = "open"
+            let door = device.lastData.door
+            if(door != nil){
+                data1 = "close"
+                if(door!) {
+                    data1 = "open"
+                }
+                data2 = ""
+            }else{
+                data1 = "no data"
             }
-            data2 = ""
             break
             
         case 2:
             //--人感センサ
-            data1 = "none"
-            if(device.lastData.human!) {
-                data1 = "detect"
+            let human = device.lastData.human
+            if(human != nil){
+                data1 = "none"
+                if(device.lastData.human!) {
+                    data1 = "detect"
+                }
+                data2 = ""
+            }else{
+                data1 = "no data"
+                data2 = "no data"
             }
-            data2 = ""
             break
             
         default:

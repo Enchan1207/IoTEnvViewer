@@ -13,11 +13,19 @@ class ListViewController: UIViewController {
     //--
     private var deviceList: Devices = Devices()
     private let handler = UserDefaults.standard
+    private let list: DeviceList = DeviceList()
     
     //--components
     @IBOutlet weak var ListView: UITableView!
     
-    //--
+    //--didloadだとアプリ起動時にしか実行されないので、viewWillappearで
+    override func viewWillAppear(_ animated: Bool) {
+        //--デバイスリスト読み込み + 更新
+        loadDeviceList()
+        refleshDeviceList()
+    }
+    
+    //--アプリ起動時の設定
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -26,16 +34,6 @@ class ListViewController: UIViewController {
         self.ListView.dataSource = self
         let customcell = UINib(nibName: "ListViewCell", bundle: nil);
         self.ListView.register(customcell, forCellReuseIdentifier: "cell");
-        
-        //--デバイスリスト読み込み
-        let list: DeviceList = DeviceList()
-        
-        if let dlistjson = handler.object(forKey: "devicelist") as! String?{
-            list.decodeList(source: dlistjson)
-            self.deviceList = list.getDeviceList()
-        }else{
-            print("no device list");
-        }
         
         //--アプリがバックグラウンドに遷移したとき、デバイスリストを保存する
         let notificationCenter = NotificationCenter.default
@@ -47,13 +45,27 @@ class ListViewController: UIViewController {
         )
     }
     
+    //--デバイスリスト読み込み
+    func loadDeviceList(){
+        list.loadList()
+        deviceList = list.getDeviceList()
+        self.ListView.reloadData()
+    }
+    
     //--現在のデバイスリストを保存
     @objc func saveDeviceList() {
-        if(self.deviceList.Device_list.count != 0){
-            handler.set(self.deviceList, forKey: "devicelist")
-        }else{
-            print("no data")
-        }
+        list.saveList()
+    }
+    
+    //--デバイスリストの測定データ周りを更新
+    func refleshDeviceList(){
+        list.update()
+        deviceList = list.getDeviceList()
+        self.ListView.reloadData()
+    }
+    
+    @IBAction func ontapReflesh(_ sender: Any) {
+        refleshDeviceList()
     }
 }
 
@@ -65,6 +77,19 @@ extension ListViewController: UITableViewDelegate{
         let next = self.storyboard?.instantiateViewController(withIdentifier: "LogScreen") as! LogViewController;
         next.setDevice(target: self.deviceList.Device_list[indexPath.row])
         show(next, sender: nil);
+    }
+    
+    //--スワイプ削除
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            list.removeDevice(index: indexPath.row)
+            list.saveList()
+            list.loadList()
+            deviceList = list.getDeviceList()
+            
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            ListView.reloadData();
+        }
     }
 }
 
@@ -78,5 +103,10 @@ extension ListViewController: UITableViewDataSource{
         let cell = self.ListView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! ListViewCell
         cell.load(device: self.deviceList.Device_list[indexPath.row])
         return cell
+    }
+    
+    //--カスタムセルの高さ
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 96;
     }
 }
